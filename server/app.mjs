@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import connectionPool from "./utils/db.mjs";
+import validatCreatePostData from "./middlewares/postValidation.mjs";
 
 const app = express();
 const port = process.env.PORT || 4001;
@@ -12,7 +13,7 @@ app.get("/", (req, res) => {
   res.send("Hello TechUp!");
 });
 
-app.post("/posts", async (req, res) => {
+app.post("/posts", [validatCreatePostData], async (req, res) => {
   const newPost = req.body;
   try {
     const query = `INSERT INTO posts (title, image, category_id, description, content, status_id)
@@ -164,7 +165,7 @@ app.get("/posts/:postId", async (req, res) => {
   }
 });
 
-app.put("/posts/:postId", async (req, res) => {
+app.put("/posts/:postId", [validatCreatePostData], async (req, res) => {
   const postIdFromClient = req.params.postId;
   const updatePost = { ...req.body };
 
@@ -207,6 +208,7 @@ app.put("/posts/:postId", async (req, res) => {
     });
   }
 });
+
 app.listen(port, () => {
   console.log(`Server is running at ${port}`);
 });
@@ -237,16 +239,3 @@ app.delete("/posts/:postId", async (req, res) => {
     });
   }
 });
-
-//1)นักเขียนสามารถดูข้อมูลบทความอันเดียวได้
-///posts/:postId
-//respone {}
-// 200 Response (Success) {}
-//404  { "message": "Server could not find a requested post" }
-//500   { "message": "Server could not read post because database connection" }
-
-//2)นักเขียนสามารถแก้ไขบทความที่ได้เคยสร้างไว้ก่อนหน้านี้
-// PUT	/posts/:postId
-// 200 { "message": "Updated post sucessfully" }
-// 404 { "message": "Server could not find a requested post to update" }
-// 500 { "message": "Server could not update post because database connection" }
